@@ -51,6 +51,20 @@ function Map(width, height) {
 	}
 	
 	/*
+	*	tileIdToPoint(tileId)
+	*	==================================
+	*	Takes a string tile id (eg. 3-5) and returns a point object.
+	*/
+	this.tileIdToPoint = function(id) {
+		var tilePoint = {
+			x: Number(id.charAt(0)),
+			y: Number(id.charAt(2)),
+			id: id
+		}
+		return tilePoint;
+	}
+	
+	/*
 	*	placeTerrain(point, terrainObject)
 	*	==================================
 	*	Adds terrain details to the main map.tiles object. Refer to the mountain example below for a better
@@ -108,8 +122,7 @@ function Map(width, height) {
 	*	unrendered units, terrain, paths, and other objects.
 	*/
 	this.updateMap = function() {
-		for(tile in this.tiles) {
-			console.log('updating: '+tile);		
+		for(tile in this.tiles) {			
 			if(this.tiles[tile]['terrain']) {
 				document.getElementById(tile).className += " " + this.tiles[tile]['terrain']['name'];
 				//this.tiles[tile]['terrain']['rendered'] = true;				
@@ -131,9 +144,9 @@ function Map(width, height) {
 	*	A convenience method used to debug path finding. Given a path object, it will highlight
 	*/
 	this.highlightPath = function(path) {
-		Y.each(this.tiles, function(tile, index) {
-			console.log(tile);
-		});
+		// Y.each(this.tiles, function(tile, index) {
+		// 		console.log(tile);
+		// 	});
 		for(tile in path) {
 			document.getElementById(tile).className += " path";
 			this.tiles[tile]

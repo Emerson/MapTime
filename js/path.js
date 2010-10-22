@@ -5,6 +5,7 @@ function PathFinder(map) {
 	// this.closedTiles = {};
 	this.squareCost = 10;
 	this.diagonalCost = 14;
+	this.potentialPaths = {};
 	
 	// standard objects used to store information during calculations
 	// this.openTiles = new Array();
@@ -16,7 +17,7 @@ function PathFinder(map) {
 	// main function used to set and store a potential path for given object id
 	this.findPath = function(start,end,id) {
 		console.log('finding a path from: '+start['x']+','+start['y']+' to: '+end['x']+','+end['y']);
-		var nearestNodes = this.adjacentTiles(start);		
+		var nearestNodes = this.adjacentTiles(start);					
 		this.potentialPaths[id] = {
 			'init': true,
 			'currentTile': start,
@@ -27,7 +28,7 @@ function PathFinder(map) {
 		
 		// Dump our results in open tiles
 		for(node in nearestNodes) {
-			this.openTiles.push(nearestNodes[node]);			
+			this.openTiles[nearestNodes[node]['x']+'-'+nearestNodes[node]['y']] = {init: true};
 		}
 		
 		// Calculate F and G fir open tiles
@@ -38,19 +39,25 @@ function PathFinder(map) {
 			}else{
 				this.openTiles[tile]['g'] = this.squareCost; // 10
 			}
-			this.openTiles[tile]['h'] = this.estimateDistanceCost(this.openTiles[tile],end);
+			var tilePoint = map.tileIdToPoint(tile);
+			this.openTiles[tile]['h'] = this.estimateDistanceCost(tilePoint,end);
 			this.openTiles[tile]['f'] = this.openTiles[tile]['g'] + this.openTiles[tile]['h'];
 		}
-		this.addTileToClosed(); // the tile with the lowest 'f' is added to closed tiles (pass parent)
-				
+		lastClosedTile = this.addTileToClosed(); // the tile with the lowest 'f' is added to closed tiles (pass parent)
+		// 		lastClosedTile = map.tileIdToPoint(lastClosedTileId);
+		// 		console.log('last closed tile ID: '+lastClosedTileId);
+		// 		console.log(lastClosedTile);
 					
 			// if we find the end tile in the closed list, end the loop
-			if(this.isClosed(end)) {
+			if(this.isClosed(end['x']+'-'+end['y'])) {
 				console.log('FOUND PATH!');
 				console.log(this.closedTiles);
 				return this.closedTiles;
-			}else{ // run the loop again with the latest closed tile			
-				this.findPath(this.closedTiles[this.closedTiles.length-1],end,id);
+			}else{ // run the loop again with the latest closed tile
+				console.log('running again');
+				// var
+				// this.findPath(this.closedTiles[this.closedTiles.length-1],end,id);
+				// this.findPath(lastClosedTile,end,id);
 			}
 	}
 	
@@ -63,25 +70,26 @@ function PathFinder(map) {
 		return false;
 	}
 	
-	
 	// loop through our open tiles
 	this.addTileToClosed = function() {	
 		var lowestCost;
-		for(tile in this.openTiles) {			
+		for(tile in this.openTiles) {
 			if(lowestCost==null) {
 					lowestCost = this.openTiles[tile];
-			}else{				
+			}else{
 				if(lowestCost['f'] > this.openTiles[tile]['f']) {
 					lowestCost = this.openTiles[tile];
+					lowestCost['tileId'] = tile;
 				}
 			}
 		}
-		this.closedTiles.push(lowestCost);
-		this.removeOpenTile(lowestCost);	
+		this.closedTiles[lowestCost['tileId']] = lowestCost;
+		this.removeOpenTile(lowestCost['tileId']);
+		return lowestCost;
 	}
 	
 	// (over) estimates the distance between two points
-	this.estimateDistanceCost = function(pointA,pointB) {			
+	this.estimateDistanceCost = function(pointA,pointB) {
 		var xDistance = Math.abs(pointA['x'] - pointB['x']);
 		var yDistance = Math.abs(pointA['y'] - pointB['y']);
 		var estimatedCost = (xDistance + yDistance) * this.squareCost;
@@ -96,32 +104,34 @@ function PathFinder(map) {
 	
 	
 	// Finds and removes a given tile from the list of current open tiles
-	this.removeOpenTile = function(point) {
-		for(tile in this.openTiles) {
-			if(this.openTiles[tile]['x'] == point['x'] && this.openTiles[tile]['y'] == point['y']) {
-				// console.log('removing '+point['x']+','+point['y']+' from open tiles');
-				delete this.openTiles[tile];
-			}
-		}
+	this.removeOpenTile = function(tileId) {
+		delete this.openTiles[tileId];
 	}
 	
 	
 	// Returns true if a given tile is already closed
-	this.isClosed = function(point) {
+	this.isClosed = function(id) {		
 		var found = false;
-		for(tile in this.closedTiles) {
-			if(this.closedTiles[tile]['x'] == point['x'] && this.closedTiles[tile]['y'] == point['y']) {
-				found = true;
+			if(typeof this.openTiles[id] != 'undefined') {
+				console.log('FOUND');
 			}
-		}
-		return found;
+		if(typeof this.closedTiles[id] != 'undefined') {
+			found = true;			
+			console.log("FOUND TILE");
+		}else{
+			found = true;
+		}	
+		
+		console.log(this.closedTiles);
+		// return found;
 	}
 	
-	// used to return an object populated by adjacent tiles of a point
-	// F = G + H
-	// G = movement cost
-	// H = estimated movement cost to destination tile
-	this.adjacentTiles = function(point) {
+	/*
+	*	adjacentTiles(point)
+	*	==================================
+	*	Returns an object that contains only valid adjacent tiles
+	*/
+	this.adjacentTiles = function(point) {				
 		var adjacentTiles = {
 			'top_left': {'x': point['x']-1, 'y': point['y']-1},
 			'top': {'x': point['x'], 'y': point['y']-1},
