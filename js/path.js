@@ -13,37 +13,43 @@ function PathFinder(map) {
 	
 	this.openTiles = {};
 	this.closedTiles = {};
-	
+
 	// main function used to set and store a potential path for given object id
-	this.findPath = function(start,end,id) {
+	this.findPath = function(start,end) {
 		console.log('finding a path from: '+start['x']+','+start['y']+' to: '+end['x']+','+end['y']);
 		var nearestNodes = this.adjacentTiles(start);					
-		this.potentialPaths[id] = {
-			'init': true,
-			'currentTile': start,
-			'destination': end
-		};
-		this.potentialPaths[id]['openTiles'] - new Array();
-		this.potentialPaths[id]['closedTiles'] = new Array();
-		
 		// Dump our results in open tiles
-		for(node in nearestNodes) {
-			this.openTiles[nearestNodes[node]['x']+'-'+nearestNodes[node]['y']] = {init: true};
-		}
+		Y.each(nearestNodes, function(tile) {
+            // console.log(tile);
+		    var tileCost = (this.isDiagonal(start,tile)) ? this.diagonalCost : this.squareCost,
+		        estCostFromTile = this.estimateDistanceCost( tile ,end),
+		        calcCost = tileCost + estCostFromTile;
+		    
+            this.openTiles[tile.x + '-' + tile.y] = {
+                init: true,
+                'parent': start,
+                'g' : tileCost,
+                'h': estCostFromTile,
+                'f': calcCost
+            };		
+        }, this);
+        
+		    // Calculate F and G fir open tiles
+        // for(tile in this.openTiles) {            
+        //  this.openTiles[tile]['parent'] = start;
+        //  if(this.isDiagonal(start,this.openTiles[tile])) {
+        //      this.openTiles[tile]['g'] = this.diagonalCost; // 14                                    
+        //  }else{
+        //      this.openTiles[tile]['g'] = this.squareCost; // 10
+        //  }
+        //  var tilePoint = map.tileIdToPoint(tile);
+        //  this.openTiles[tile]['h'] = this.estimateDistanceCost(tilePoint,end);
+        //  this.openTiles[tile]['f'] = this.openTiles[tile]['g'] + this.openTiles[tile]['h'];
+        // }
+		console.log(this.openTiles, 'open');
 		
-		// Calculate F and G fir open tiles
-		for(tile in this.openTiles) {			
-			this.openTiles[tile]['parent'] = start;
-			if(this.isDiagonal(start,this.openTiles[tile])) {
-				this.openTiles[tile]['g'] = this.diagonalCost; // 14									
-			}else{
-				this.openTiles[tile]['g'] = this.squareCost; // 10
-			}
-			var tilePoint = map.tileIdToPoint(tile);
-			this.openTiles[tile]['h'] = this.estimateDistanceCost(tilePoint,end);
-			this.openTiles[tile]['f'] = this.openTiles[tile]['g'] + this.openTiles[tile]['h'];
-		}
-		lastClosedTile = this.addTileToClosed(); // the tile with the lowest 'f' is added to closed tiles (pass parent)
+		var lastClosedTile = this.openTiles.sort(); // the tile with the lowest 'f' is added to closed tiles (pass parent)
+		console.log(lastClosedTile, 'last');
 		// 		lastClosedTile = map.tileIdToPoint(lastClosedTileId);
 		// 		console.log('last closed tile ID: '+lastClosedTileId);
 		// 		console.log(lastClosedTile);
@@ -64,7 +70,10 @@ function PathFinder(map) {
 	
 	// Tests in two points are located diagonal. Returns true if they are
 	this.isDiagonal = function(pointA, pointB) {
+        // console.log(pointA, 'a');
+        // console.log(pointB, 'b');
 		if(pointA['x'] != pointB['x'] && pointA['y'] != pointB['y']) {
+            // console.log('true');
 			return true;	
 		}
 		return false;
@@ -90,6 +99,8 @@ function PathFinder(map) {
 	
 	// (over) estimates the distance between two points
 	this.estimateDistanceCost = function(pointA,pointB) {
+	    console.log(pointA, 'a2');
+	    console.log(pointB, 'b2');
 		var xDistance = Math.abs(pointA['x'] - pointB['x']);
 		var yDistance = Math.abs(pointA['y'] - pointB['y']);
 		var estimatedCost = (xDistance + yDistance) * this.squareCost;

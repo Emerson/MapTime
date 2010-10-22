@@ -18,7 +18,7 @@ function Map(width, height) {
 				this.tiles[x+'-'+y] = {init: true};
 			}			
 		}
-	}
+	};
 	
 	/*
 	*	printMap(element_id, element_type)
@@ -34,7 +34,7 @@ function Map(width, height) {
 			newTile.innerHTML = '<span class="tileNumber">'+tile+'</span>';
 			mapContainer.appendChild(newTile);
 		}
-	}
+	};
 	
 	/*
 	*	generatePoint(x, y)
@@ -48,7 +48,7 @@ function Map(width, height) {
 			"tileId": x+'-'+y
 		}
 		return point;
-	}
+	};
 	
 	/*
 	*	tileIdToPoint(tileId)
@@ -62,7 +62,7 @@ function Map(width, height) {
 			id: id
 		}
 		return tilePoint;
-	}
+	};
 	
 	/*
 	*	placeTerrain(point, terrainObject)
@@ -82,7 +82,7 @@ function Map(width, height) {
 		this.tiles[point['tileId']]['terrain'] = terrain;
 		this.tiles[point['tileId']]['terrain']['rendered'] = false;
 		this.updateMap();
-	}
+	};
 	
 	/*
 	*	placeUnit(point, unitObject)
@@ -112,7 +112,7 @@ function Map(width, height) {
 		this.tiles[point['tileId']]['unit'] = unit;		
 		this.updateMap();
 		return unit;
-	}
+	};
 		
 	
 	/*

@@ -31,11 +31,24 @@
 	<h1>Map Generator</h1>
     
     <div id="map"></div>
+
+<script type="text/javascript" charset="utf-8">
+</script>
     
 	<!-- JS -->	
-    <script type="text/javascript" src="js/map.js"></script>
-	<script type="text/javascript" src="js/path.js"></script>
+<script type="text/javascript" src="js/map.js"></script>
+<script type="text/javascript" src="js/path.js"></script>
 	<script type="text/javascript">
+
+(function() {
+
+var mappy = Y.namespace('MapTime', 'MapTime.bb', 'MapTime.yy');
+//     bb = Y.namespace('MapTime.bb');
+// mappy.foo();
+
+  
+})();
+
 
 // Y.use('console','console-filters','dump', function(Y) {
 // 
