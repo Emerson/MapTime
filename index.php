@@ -12,7 +12,7 @@
 	.tileNumber {position: absolute; bottom: 3px; right: 3px;}
 	
 	/* UNITS */
-	#map .emerson {background: green; background-image:none;}
+	#map .infantry {background: green; background-image:none;}
 	
 	
 	/* TERRAIN */	
@@ -21,46 +21,125 @@
 	#map .path {opacity: 0.7;}
 	
 </style>
+<!-- <script type="text/javascript" src="http://yui.yahooapis.com/combo?3.2.0/build/yui/yui-min.js"></script> -->
+<script type="text/javascript" src="http://yui.yahooapis.com/3.2.0pr2/build/simpleyui/simpleyui-min.js"></script>
 <title>Map Generator</title>
 </head>
 
-<body>
+<body class="yui3-skin-sam">
 
 	<h1>Map Generator</h1>
     
     <div id="map"></div>
     
+	<!-- JS -->	
     <script type="text/javascript" src="js/map.js"></script>
 	<script type="text/javascript" src="js/path.js"></script>
 	<script type="text/javascript">
 
+// Y.use('console','console-filters','dump', function(Y) {
+// 
+// 
+// 
+// 
+// 
+// 	new Y.Console({plugins: [ Y.Plugin.ConsoleFilters ], logSource: Y.Global}).render();
+// 	
+// 	var newAr = ['foor', 'baaarrr'];
+// 	var newO = {'foo': 'bar', 'z': 'y'};
+// 	
+// 	Y.log('foo', 'bar', 'Map');
+// 	
+// 	Y.each(newAr, function(a) {
+// 		Y.log(a,'zz', 'Map');
+// 	});
+// 
+// 	Y.each(newO, function(v,k,o) {
+// 		Y.log(v,'object', 'Map');
+// 		Y.log(k,'object', 'Map');
+// 		Y.log(o,'object', 'Map');
+// 		console.log(o,'object', 'Map');
+// 	});
+// 	
+// });
+
+	var MAP = function() {
+			
+		var point = {};
+		var map = new Map(10,8);
+		map.buildMap();
+		map.printMap('map','div');
+		
+		// A Type of Landscape
+		var mountain = {
+			name: 'mountain',	
+			gold: 0,
+			production: 0,
+			movementCost: 0,
+			passable: false,
+			rendered: false
+		};		
+		
+		point = map.generatePoint(4,6);
+		map.placeTerrain(point,mountain);
+		point = map.generatePoint(5,6);
+		map.placeTerrain(point,mountain);
+		point = map.generatePoint(6,6);
+		map.placeTerrain(point,mountain);
+		
+		
+		var infantry = {
+			name: 'infantry',	
+			hitpoints: 15,
+			strength: 5,
+			movementCost: 2
+		};		
+		
+		
+		point = map.generatePoint(1,2);
+		var endpoint = map.generatePoint(7,5);
+		var emerson = map.placeUnit(point,infantry);
+		
+		
+		PathFinder = new PathFinder(map);
+		PathFinder.findPath(point, endpoint, emerson); // stores a path object referenced by id	
+		var emersonPath = PathFinder.closedTiles;
+		
+		map.highlightPath(emersonPath);
+		console.log('moving emerson along the path: ');
+		console.log(emersonPath);
+	
+		
+	};
+	MAP();
+	
 	// Create and intialize a new game map
-	map = new Map(10,8);
-	map.buildMap();
-	map.printMap('map','div');
+	// map = new Map(10,8);
+	// map.buildMap();
+	// map.printMap('map','div');
 	
 	// Generate some impassable terrain
-	var point = map.generatePoint(4,6);
-	map.placeTerrain('mountain',0,0,0,point,false);
-	point = map.generatePoint(5,6);
-	map.placeTerrain('mountain',0,0,0,point,false);
-	point = map.generatePoint(6,6);
-	map.placeTerrain('mountain',0,0,0,point,false);
+	// var point = map.generatePoint(4,6);
+	// map.placeTerrain('mountain',0,0,0,point,false);
+	// point = map.generatePoint(5,6);
+	// map.placeTerrain('mountain',0,0,0,point,false);
+	// point = map.generatePoint(6,6);
+	// map.placeTerrain('mountain',0,0,0,point,false);
 	
 	// Place a unit on the map
-	var point = map.generatePoint(1,2);
-	var endpoint = map.generatePoint(7,5);
-	var emerson = map.placeUnit('emerson',10,10,2,point,true);
-	
+	// var point = map.generatePoint(1,2);
+	// var endpoint = map.generatePoint(7,5);
+	// var emerson = map.placeUnit('emerson',10,10,2,point,true);
+	// 
 	// Create a pathfinder object
-	PathFinder = new PathFinder(map);
-	PathFinder.findPath(point, endpoint, emerson); // stores a path object referenced by id	
-	var emersonPath = PathFinder.closedTiles;
+	// PathFinder = new PathFinder();
+	// PathFinder.findPath(point, endpoint, emerson); // stores a path object referenced by id	
+	// var emersonPath = PathFinder.closedTiles;
 	
 	// Highlight the path
-	map.highlightPath(emersonPath);
-	console.log('moving emerson along the path: ');
-	console.log(emersonPath);
+	// map.highlightPath(emersonPath);
+	// console.log('moving emerson along the path: ');
+	// console.log(emersonPath);
 	
 	
 </script> 

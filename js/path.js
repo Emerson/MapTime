@@ -7,15 +7,16 @@ function PathFinder(map) {
 	this.diagonalCost = 14;
 	
 	// standard objects used to store information during calculations
-	this.openTiles = new Array();
-	this.closedTiles = new Array();
-	this.potentialPaths = {};
+	// this.openTiles = new Array();
+	// this.closedTiles = new Array();
+	
+	this.openTiles = {};
+	this.closedTiles = {};
 	
 	// main function used to set and store a potential path for given object id
 	this.findPath = function(start,end,id) {
 		console.log('finding a path from: '+start['x']+','+start['y']+' to: '+end['x']+','+end['y']);
-		var nearestNodes = this.adjacentTiles(start);
-		console.log(nearestNodes);
+		var nearestNodes = this.adjacentTiles(start);		
 		this.potentialPaths[id] = {
 			'init': true,
 			'currentTile': start,
@@ -41,21 +42,14 @@ function PathFinder(map) {
 			this.openTiles[tile]['f'] = this.openTiles[tile]['g'] + this.openTiles[tile]['h'];
 		}
 		this.addTileToClosed(); // the tile with the lowest 'f' is added to closed tiles (pass parent)
-		
-		console.log('current open tiles are:');
-		console.log(this.openTiles);
-		
-		console.log('current closed tiles are:');
-		console.log(this.closedTiles);
-		
-			
+				
+					
 			// if we find the end tile in the closed list, end the loop
 			if(this.isClosed(end)) {
 				console.log('FOUND PATH!');
 				console.log(this.closedTiles);
 				return this.closedTiles;
-			}else{ // run the loop again with the latest closed tile
-				console.log('running function again');
+			}else{ // run the loop again with the latest closed tile			
 				this.findPath(this.closedTiles[this.closedTiles.length-1],end,id);
 			}
 	}
@@ -71,36 +65,28 @@ function PathFinder(map) {
 	
 	
 	// loop through our open tiles
-	this.addTileToClosed = function() {
-		console.log('adding best option to closed tiles');
+	this.addTileToClosed = function() {	
 		var lowestCost;
 		for(tile in this.openTiles) {			
-			console.log('looping');			
-			console.log(this.openTiles[tile]);
 			if(lowestCost==null) {
 					lowestCost = this.openTiles[tile];
-			}else{
-				console.log('lowest cost is currently: '+lowestCost['f']);
+			}else{				
 				if(lowestCost['f'] > this.openTiles[tile]['f']) {
 					lowestCost = this.openTiles[tile];
 				}
 			}
 		}
 		this.closedTiles.push(lowestCost);
-		this.removeOpenTile(lowestCost);
-		console.log('lowest cost for movement is:');
-		console.log(lowestCost);						
+		this.removeOpenTile(lowestCost);	
 	}
 	
 	// (over) estimates the distance between two points
-	this.estimateDistanceCost = function(pointA,pointB) {
-		console.log('estimating distance betwen:');
-		console.log(pointA);
-		console.log(pointB);
-		console.log(Math.abs(pointA['x'] - pointB['x']) +  Math.abs(pointA['y'] - pointB['y']) * this.squareCost);
+	this.estimateDistanceCost = function(pointA,pointB) {			
 		var xDistance = Math.abs(pointA['x'] - pointB['x']);
 		var yDistance = Math.abs(pointA['y'] - pointB['y']);
-		return (xDistance + yDistance) * this.squareCost;
+		var estimatedCost = (xDistance + yDistance) * this.squareCost;
+		// console.log('estimating distance between: '+pointA['x']+','+pointA['y']+' and '+pointB['x']+','+pointB['y']+' at: '+estimatedCost);	
+		return estimatedCost;
 	}
 	
 	this.regeneratePaths = function() {
@@ -113,7 +99,7 @@ function PathFinder(map) {
 	this.removeOpenTile = function(point) {
 		for(tile in this.openTiles) {
 			if(this.openTiles[tile]['x'] == point['x'] && this.openTiles[tile]['y'] == point['y']) {
-				console.log('removing '+point['x']+','+point['y']+' from open tiles');
+				// console.log('removing '+point['x']+','+point['y']+' from open tiles');
 				delete this.openTiles[tile];
 			}
 		}
@@ -136,7 +122,6 @@ function PathFinder(map) {
 	// G = movement cost
 	// H = estimated movement cost to destination tile
 	this.adjacentTiles = function(point) {
-		// console.log('find adjacent squares around: '+point['x']+', '+point['y']);
 		var adjacentTiles = {
 			'top_left': {'x': point['x']-1, 'y': point['y']-1},
 			'top': {'x': point['x'], 'y': point['y']-1},
@@ -151,18 +136,22 @@ function PathFinder(map) {
 		for(tile in adjacentTiles) {
 			var x = adjacentTiles[tile]['x'];
 			var y = adjacentTiles[tile]['y'];
-			console.log('x: '+x);
-			console.log('y: '+y);
+			// console.log('x: '+x);
+			// console.log('y: '+y);
 			if(x < 1 || y < 1) {
 				delete adjacentTiles[tile];
-			}
-			console.log(this.tiles);
-			console.log(typeof map);
+			}	
+			// console.log(map.tiles, 'warn');
+		
+			// for(tile in map.tiles) {
+			// 	console.log('checking adjacent tiles for impassible');
+			// 	console.log(map.tiles[tile], 'warn');
+			// }
 			// if(typeof map.tiles[x] != 'undefined' && map.tiles[x][y]['terrain']['moveCost']==false) {
 			// 	delete adjacentTiles[tile];
 			// }
-			console.log(tile);
-			console.log('adjacentTiles map tiles:');
+			//console.log(tile);
+			//console.log('adjacentTiles map tiles:');
 			// console.log(map.tiles[adjacentTiles[tile]['x']][adjacentTiles[tile]['y']]);
 		}
 		
@@ -171,4 +160,3 @@ function PathFinder(map) {
 	}
 	
 }
-Map.prototype = PathFinder;
