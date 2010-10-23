@@ -138,6 +138,22 @@ function PathFinder(map) {
 			if(x < 1 || y < 1) {
 				delete adjacentTiles[key];
 			}
+			//console.log(map.tiles,'MAP TILES');		
+			for(tile in map.tiles) {
+				if(map.tiles[tile]['terrain']) {
+					
+				}
+			}			
+			// if(map.tiles['1-6']['terrain'] !== 'undefined') {
+			// 				console.log('not undefined','undefined');
+			// 			}			// 
+						// if(Y.hasKey(map.tiles['4-6'], 'terrain')) {
+						// 	console.log('we have rendered terrain here','terrain');
+						// };
+			
+			// if(map.tiles[tile['tileId']]['terrain'] != 'undefined') {
+			// 				
+			// 			}
 		});			
 		
 		// todo - make a property set to false if tile is invalid (eg. offmap)
