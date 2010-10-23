@@ -95,6 +95,10 @@ var mappy = Y.namespace('MapTime', 'MapTime.bb', 'MapTime.yy');
 		
 		point = map.generatePoint(4,6);
 		map.placeTerrain(point,mountain);
+		point = map.generatePoint(3,4);
+		map.placeTerrain(point,mountain);
+			point = map.generatePoint(3,3);
+			map.placeTerrain(point,mountain);
 		point = map.generatePoint(5,6);
 		map.placeTerrain(point,mountain);
 		point = map.generatePoint(6,6);
@@ -110,7 +114,7 @@ var mappy = Y.namespace('MapTime', 'MapTime.bb', 'MapTime.yy');
 		
 		
 		point = map.generatePoint(1,2);
-		var endpoint = map.generatePoint(5,7);
+		var endpoint = map.generatePoint(6,7);
 		var emerson = map.placeUnit(point,infantry);
 		
 		
