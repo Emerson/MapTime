@@ -4,9 +4,14 @@ function PathFinder(map) {
 	this.diagonalCost = 14;	
 	this.openTiles = {};
 	this.closedTiles = {};
+	this.tries = 0;
 
 	// main function used to set and store a potential path for given object id
 	this.findPath = function(start,end) {
+		if(this.tries > Y.Object.size(this.openTiles)) {
+			console.log('Can\'t find path','PathFinder');
+			return false;
+		}
 		console.log('finding a path from: '+start['x']+','+start['y']+' to: '+end['x']+','+end['y']);
 		var nearestNodes = this.adjacentTiles(start);					
 		// Dump our results in open tiles and calculate their costs
@@ -41,6 +46,7 @@ function PathFinder(map) {
 			var start = map.tileIdToPoint(lastClosedTile['tileId']);			
 			console.log(start, 'recursive1');
 			console.log(end,'recursive2');
+			this.tries++;
 			this.findPath(start,end);
 		}
 	}
@@ -76,8 +82,26 @@ function PathFinder(map) {
 		return lowestCost;
 	}
 	
-	// (over) estimates the distance between two points
+	/*
+	*	estimateDistanceCost(pointA,pointB)
+	*	==================================
+	*	Gives a rough distance cost estimate between two points and tries to consider terrain.
+	*	TODO: Consider terrain
+	*/
 	this.estimateDistanceCost = function(pointA,pointB) {
+		var xDistance = Math.abs(pointA['x'] - pointB['x']);
+		var yDistance = Math.abs(pointA['y'] - pointB['y']);
+		var estimatedCost = (xDistance + yDistance) * this.squareCost;
+		// console.log('estimating distance between: '+pointA['x']+','+pointA['y']+' and '+pointB['x']+','+pointB['y']+' at: '+estimatedCost);	
+		return estimatedCost;
+	}
+	
+	/*
+	*	estimateDistanceCostFlat(pointA,pointB)
+	*	==================================
+	*	Gives a rough distance cost estimate between two points. Does not consider any terrain.
+	*/
+	this.estimateDistanceCostFlat = function(pointA,pointB) {
 		var xDistance = Math.abs(pointA['x'] - pointB['x']);
 		var yDistance = Math.abs(pointA['y'] - pointB['y']);
 		var estimatedCost = (xDistance + yDistance) * this.squareCost;
@@ -137,13 +161,17 @@ function PathFinder(map) {
 			tile['tileId'] = x+'-'+y;
 			if(x < 1 || y < 1) {
 				delete adjacentTiles[key];
-			}
-			//console.log(map.tiles,'MAP TILES');		
-			for(tile in map.tiles) {
-				if(map.tiles[tile]['terrain']) {
-					
-				}
 			}			
+			if(Y.Object.hasKey(map.tiles[tile['tileId']], 'terrain')) {
+				delete adjacentTiles[key];
+				console.log('Tile '+key+' has impassable terrain','TERRAIN');
+			}
+			//console.log(map.tiles,'MAP TILES');					// 
+						// for(tile in map.tiles) {
+						// 	if(map.tiles[tile]['terrain']) {
+						// 		
+						// 	}
+						// }			
 			// if(map.tiles['1-6']['terrain'] !== 'undefined') {
 			// 				console.log('not undefined','undefined');
 			// 			}			// 

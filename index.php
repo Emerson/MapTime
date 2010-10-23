@@ -110,12 +110,12 @@ var mappy = Y.namespace('MapTime', 'MapTime.bb', 'MapTime.yy');
 		
 		
 		point = map.generatePoint(1,2);
-		var endpoint = map.generatePoint(7,5);
+		var endpoint = map.generatePoint(5,7);
 		var emerson = map.placeUnit(point,infantry);
 		
 		
 		PathFinder = new PathFinder(map);
-		PathFinder.findPath(point, endpoint, emerson); // stores a path object referenced by id	
+		PathFinder.findPath(point, endpoint); // stores a path object referenced by id	
 		var emersonPath = PathFinder.closedTiles;
 		
 		map.highlightPath(emersonPath);
