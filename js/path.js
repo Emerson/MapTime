@@ -1,149 +1,74 @@
 function PathFinder(map) {
-	
+		
 	this.squareCost = 10;
 	this.diagonalCost = 14;	
 	this.openTiles = {};
 	this.closedTiles = {};
 	this.tries = 0;
-
-	// main function used to set and store a potential path for given object id
-	this.findPath = function(start,end) {
-		if(this.tries > Y.Object.size(this.openTiles)) {
-			console.log('Can\'t find path','PathFinder');
+		
+	/*
+	*	findPath(start,end)
+	*	==================================
+	*	Finds the best path from a starting point to an end point. If no path is possible it will return a
+	*	simple false. Otherwise, it will return an path object.
+	*	A* Concept taken from: http://www.policyalmanac.org/games/aStarTutorial.htm
+	*/
+	this.findPath = function(pointA,pointB) {
+		if(this.tries > (map.width * map.height)) {
+			// Path is impossible
 			return false;
 		}
-		console.log('finding a path from: '+start['x']+','+start['y']+' to: '+end['x']+','+end['y']);
-		var nearestNodes = this.adjacentTiles(start);					
-		// Dump our results in open tiles and calculate their costs
-		Y.each(nearestNodes, function(tile) {            
-		    var tileCost = (this.isDiagonal(start,tile)) ? this.diagonalCost : this.squareCost,
-		        estCostFromTile = this.estimateDistanceCost(tile ,end),
-		        calcCost = tileCost + estCostFromTile;		    
-            this.openTiles[tile.x + '-' + tile.y] = {
-                init: true,
-				'tileId': tile.x + '-' + tile.y,
-                'parent': start,
-                'g' : tileCost,
-                'h': estCostFromTile,
-                'f': calcCost
-            };		
-        }, this);        
-		console.log(this.openTiles, 'open');
-		
-		var lastClosedTile = this.addTileToClosed(); // the tile with the lowest 'f-cost' is added to closed tiles (pass parent)
-		console.log(lastClosedTile, 'last');
-		// 		lastClosedTile = map.tileIdToPoint(lastClosedTileId);
-		// 		console.log('last closed tile ID: '+lastClosedTileId);
-		// 		console.log(lastClosedTile);
-					
-		// end the loop if the end destination is a closed tile		
-		if(this.isClosed(end['x']+'-'+end['y'])) {
-			console.log('FOUND PATH!');
-			console.log(this.closedTiles);
-			return this.closedTiles;
-		}else{ // run the loop again with the latest closed tile
-			console.log('running again');
-			var start = map.tileIdToPoint(lastClosedTile['tileId']);			
-			console.log(start, 'recursive1');
-			console.log(end,'recursive2');
-			this.tries++;
-			this.findPath(start,end);
-		}
-	}
-	
-	
-	// Tests in two points are located diagonal. Returns true if they are
-	this.isDiagonal = function(pointA, pointB) {
-		if(pointA['x'] != pointB['x'] && pointA['y'] != pointB['y']) {
-			return true;	
-		}
-		return false;
-	}
-	
-	// loop through our open tiles
-	this.addTileToClosed = function() {	
-		var lowestCost;
-		var tileId;
-		Y.each(this.openTiles, function(tile,key) {
-			if(lowestCost==null) {
-				lowestCost = tile;
-				lowestCost['tileId'] = key;
-				tileId = key;
-			}else{
-				if(lowestCost['f'] > tile['f']) {
-					lowestCost = tile;
-					lowestCost['tileId'] = key;
-					tileId = key;
+		var adjacentTiles = this.getAdjacentTiles(pointA);
+		var lowestCostTile = {};
+		// Add adjacent tiles into the open tiles object
+		Y.each(adjacentTiles, function(tile) {
+			var parentTile = {
+				tileId: pointA.x+'-'+pointA.y,
+				x: pointA.x,
+				y: pointA.y
+			};
+			 this.openTiles[tile.x + '-' + tile.y] = {init: true, parent: parentTile}
+		}, this);
+		// Add the current tile to the closed list if it's not already present
+		this.addToClosed(pointA);
+		// Calculate the f, g, and h values for each open tile. Add the tile with the lowest f-cost to this.closedTiles		
+		Y.each(adjacentTiles, function(tile, key) {
+			var gCost = this.calculateGCost(tile,pointA);
+			// Need to refactor this mess
+			this.openTiles[tile.tileId]['x'] = tile.x;
+			this.openTiles[tile.tileId]['y'] = tile.y;
+			this.openTiles[tile.tileId]['tileId'] = tile.x+'-'+tile.y;
+			this.openTiles[tile.tileId]['g'] = gCost;
+			this.openTiles[tile.tileId]['h'] = this.estimateDistanceCost(tile,pointB);
+			this.openTiles[tile.tileId]['f'] = gCost + this.openTiles[tile.tileId]['h'];
+			if(Y.Object.hasKey(lowestCostTile, 'tileId')) {			
+				if(lowestCostTile['f'] > this.openTiles[tile.tileId]['f']) {
+					lowestCostTile = this.openTiles[tile.tileId];
 				}
-			}			
-		});
-		this.closedTiles[tileId] = lowestCost;		
-		this.removeOpenTile(tileId);
-		return lowestCost;
-	}
-	
-	/*
-	*	estimateDistanceCost(pointA,pointB)
-	*	==================================
-	*	Gives a rough distance cost estimate between two points and tries to consider terrain.
-	*	TODO: Consider terrain
-	*/
-	this.estimateDistanceCost = function(pointA,pointB) {
-		var xDistance = Math.abs(pointA['x'] - pointB['x']);
-		var yDistance = Math.abs(pointA['y'] - pointB['y']);
-		var estimatedCost = (xDistance + yDistance) * this.squareCost;
-		// console.log('estimating distance between: '+pointA['x']+','+pointA['y']+' and '+pointB['x']+','+pointB['y']+' at: '+estimatedCost);	
-		return estimatedCost;
-	}
-	
-	/*
-	*	estimateDistanceCostFlat(pointA,pointB)
-	*	==================================
-	*	Gives a rough distance cost estimate between two points. Does not consider any terrain.
-	*/
-	this.estimateDistanceCostFlat = function(pointA,pointB) {
-		var xDistance = Math.abs(pointA['x'] - pointB['x']);
-		var yDistance = Math.abs(pointA['y'] - pointB['y']);
-		var estimatedCost = (xDistance + yDistance) * this.squareCost;
-		// console.log('estimating distance between: '+pointA['x']+','+pointA['y']+' and '+pointB['x']+','+pointB['y']+' at: '+estimatedCost);	
-		return estimatedCost;
-	}
-	
-	this.regeneratePaths = function() {
-		// for each id on the map, go ahead and regenerate paths.
-		// Usually called at the end of a uers turn
+			}else{
+				lowestCostTile = this.openTiles[tile.tileId];
+			}
+		}, this);
+		console.log(this.tries, 'tries');
+		console.log(this.closedTiles, 'closedTiles');	
+		console.log(lowestCostTile, 'lowestCostTile');
+		this.addToClosed(lowestCostTile)
+		this.tries++;
+		if(this.isClosed(pointB)) {
+			console.log('Path found!', 'complete');
+			return this.closedTiles;
+		}else{
+			console.log('Running function again', 'processing...');
+			this.findPath(lowestCostTile,pointB);
+		}
 	};
 	
-	
-	// Finds and removes a given tile from the list of current open tiles
-	this.removeOpenTile = function(tileId) {		
-		delete this.openTiles[tileId];
-	}
-	
-	
 	/*
-	*	isClosed(tileId)
+	*	getAdjacentTiles(point)
 	*	==================================
-	*	Returns true if a given tile (eg. '1-2') already appears in the closed tile object
+	*	Returns an object of adjacent tiles
 	*/
-	this.isClosed = function(id) {
-		console.log('checking if tile '+id+' is closed', 'checking if closed');
-		var found = false;
-		if(typeof this.closedTiles[id] != 'undefined') {
-			found = true;			
-			console.log("FOUND TILE");
-		}else{
-			found = false;			
-		}	
-		return found;
-	}
-	
-	/*
-	*	adjacentTiles(point)
-	*	==================================
-	*	Returns an object that contains only valid adjacent tiles
-	*/
-	this.adjacentTiles = function(point) {				
+	this.getAdjacentTiles = function(point) {
 		var adjacentTiles = {
 			'top_left': {'x': point['x']-1, 'y': point['y']-1},
 			'top': {'x': point['x'], 'y': point['y']-1},
@@ -154,39 +79,107 @@ function PathFinder(map) {
 			'bottom_left': {'x': point['x']-1, 'y': point['y']+1},
 			'left': {'x': point['x']-1, 'y': point['y']}
 		};
-		// Remove invalid tiles
-		Y.each(adjacentTiles, function(tile,key) {
-			var x = tile['x'];
-			var y = tile['y'];
-			tile['tileId'] = x+'-'+y;
-			if(x < 1 || y < 1) {
+		// Loop through and remove invalid tiles
+		Y.each(adjacentTiles, function(tile,key) {			
+			tile.tileId = tile.x+'-'+tile.y;
+			// Remove tiles that are off map
+			if(tile.x < 1 || tile.y < 1 || tile.x > map.width || tile.y > map.height3) {
 				delete adjacentTiles[key];
-			}			
-			if(Y.Object.hasKey(map.tiles[tile['tileId']], 'terrain')) {
+			}
+			// Remove any tiles that have terrain
+			if(Y.Object.hasKey(map.tiles[tile.tileId], 'terrain')) {
 				delete adjacentTiles[key];
 				console.log('Tile '+key+' has impassable terrain','TERRAIN');
-			}
-			//console.log(map.tiles,'MAP TILES');					// 
-						// for(tile in map.tiles) {
-						// 	if(map.tiles[tile]['terrain']) {
-						// 		
-						// 	}
-						// }			
-			// if(map.tiles['1-6']['terrain'] !== 'undefined') {
-			// 				console.log('not undefined','undefined');
-			// 			}			// 
-						// if(Y.hasKey(map.tiles['4-6'], 'terrain')) {
-						// 	console.log('we have rendered terrain here','terrain');
-						// };
-			
-			// if(map.tiles[tile['tileId']]['terrain'] != 'undefined') {
-			// 				
-			// 			}
-		});			
-		
-		// todo - make a property set to false if tile is invalid (eg. offmap)
-		console.log(adjacentTiles, 'adjacentTiles');
+			}	
+		});
 		return adjacentTiles;
+	};
+	
+	/*
+	*	calculateGCost(tile)
+	*	==================================
+	*	Loops through parent tiles to figure out the G-cost of a tile.
+	*	G = the movement cost to move from the starting point to a given square on the grid, following the path generated to get there.
+	*/
+	this.calculateGCost = function(tile, parentTile) {		
+		var gCost = 0;
+		(this.isDiagonal(tile,parentTile)) ? gCost = 14 : gCost = 10;
+		if(Y.Object.hasKey(this.openTiles[parentTile.tileId], 'g')) {
+			console.log(this.openTiles[parentTile.tileId], 'parentTile');
+			console.log('ADD THE G!!!!!!!','addtheg');
+		}
+		console.log(parentTile.tileId,'CALCULATE');
+		return gCost;
+	};
+	
+	/*
+	*	addToOpen(tile)
+	*	==================================
+	*	Adds a tile to the this.openTiles object if it is not already a member. Returns the added tile.
+	*/
+	this.addToOpen = function(tile) {
+		if(Y.Object.hasKey(this.openTiles, tile.tileId)) {
+			return tile;
+		}else{
+			this.openTiles[tile.tileId] = {init: true};
+			return tile;
+		}		
+	};
+	
+	/*
+	*	addToClosed(tile)
+	*	==================================
+	*	Adds a tile to the this.closedTiles object if it is not already a member. Returns the added tile and also
+	*	removes it from the this.openTiles object if present.
+	*/
+	this.addToClosed = function(tile) {
+		if(Y.Object.hasKey(this.closedTiles, tile.tileId)) {
+			return tile;
+		}else{
+			this.closedTiles[tile.tileId] = tile;
+			return tile;
+		}
+		if(Y.Object.hasKey(this.openTiles, tile.tileId)) {
+			delete this.openTiles[tile.tileId];
+		}	
+	};
+	
+	/*
+	*	isDiagonal(pointA, pointB)
+	*	==================================
+	*	Returns true if two points are diagional, returns false otherwise
+	*/
+	this.isDiagonal = function(pointA, pointB) {
+		if(pointA['x'] != pointB['x'] && pointA['y'] != pointB['y']) {
+			return true;	
+		}
+		return false;
+	}
+	
+	/*
+	*	isClosed(tile)
+	*	==================================
+	*	Returns true if a given tile is already closed. Otherwise returns false.
+	*/
+	this.isClosed = function(tile) {
+		if(Y.Object.hasKey(this.closedTiles, tile.tileId)) {
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	/*
+	*	estimateDistanceCost(pointA,pointB)
+	*	==================================
+	*	Gives a rough distance cost estimate between two points and tries to consider terrain.
+	*/
+	this.estimateDistanceCost = function(pointA,pointB) {
+		var xDistance = Math.abs(pointA['x'] - pointB['x']);
+		var yDistance = Math.abs(pointA['y'] - pointB['y']);
+		var estimatedCost = (xDistance + yDistance) * this.squareCost;
+		// console.log('estimating distance between: '+pointA['x']+','+pointA['y']+' and '+pointB['x']+','+pointB['y']+' at: '+estimatedCost);	
+		return estimatedCost;
 	}
 	
 }
