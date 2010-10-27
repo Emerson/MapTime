@@ -169,16 +169,21 @@ function Map(width, height) {
 	*	A convenience method used to debug path finding. Given a path object, it will highlight
 	*/
 	this.highlightPath = function(path) {
-		// Y.each(this.tiles, function(tile, index) {
+		//Y.each(this.tiles, function(tile, index) {
 		// 		console.log(tile);
 		// 	});
-		for(tile in path) {
-			document.getElementById(tile).className += " path";
-			this.tiles[tile]
-		}
-		for(var i=0; i<path.length; i++) {			
-			this.tiles[ path[i]['x'] ][ path[i]['y'] ]['terrain'] = {name: 'path', rendered: false};		
-		}
+		Y.each(path, function(tile) {
+			console.log(tile,'pathfinding');
+			this.tiles[tile.tileId]['path'] = {init: true};
+			// console.log(tile,'pathfinding');
+		}, this);
+		// for(tile in path) {
+		// 	document.getElementById(tile).className += " path";
+		// 	this.tiles[tile]
+		// }
+		// for(var i=0; i<path.length; i++) {			
+		// 	this.tiles[ path[i]['x'] ][ path[i]['y'] ]['terrain'] = {name: 'path', rendered: false};		
+		// }
 		this.updateMap();
 	}
 	
