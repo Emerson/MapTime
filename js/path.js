@@ -36,13 +36,15 @@ function PathFinder(map) {
 				h: this.estimateDistanceCost(tile,pointB),
 				g: gCost + this.estimateDistanceCost(tile,pointB)
 			};
-			console.log(tileData,'tile data');
+			console.log(tileData,'tile data for '+tileData.tileId);
 			// If the tile is already open
 			if(Y.Object.hasKey(this.openTiles, tile.tileId)) {
-				console.log('already open', 'alrady open '+tile.tileId);				
+				// Recalculate theoretical G cost
+				console.log(this.openTiles[tile.tileId],'tile '+tile.tileId+' is already open');
+				// console.log('already open', 'alrady open '+tile.tileId);				
 			}
 			else {
-				console.log('adding to open', 'adding to open');
+				// console.log('adding to open', 'adding to open');
 			}
 			 // this.openTiles[tile.x + '-' + tile.y] = {init: true, parent: parentTile}
 			this.openTiles[tile.x + '-' + tile.y] = {init: true, parent: parentTile};
@@ -70,7 +72,7 @@ function PathFinder(map) {
 			}else{
 				lowestCostTile = this.openTiles[tile.tileId];
 			}
-			console.log(this.openTiles[tile.tileId], 'calculate');
+			// console.log(this.openTiles[tile.tileId], 'calculate');
 		}, this);
 		// console.log(this.tries, 'tries');
 		// console.log(this.closedTiles, 'closedTiles');	
@@ -90,7 +92,7 @@ function PathFinder(map) {
 	/*
 	*	getAdjacentTiles(point)
 	*	==================================
-	*	Returns an object of adjacent tiles
+	*	Returns an object of adjacent tiles. Ignores impassable terrain and closed tiles.
 	*/
 	this.getAdjacentTiles = function(point) {
 		var adjacentTiles = {
