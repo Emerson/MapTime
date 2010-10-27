@@ -59,7 +59,7 @@ function Map(width, height) {
 		var tilePoint = {
 			x: Number(id.charAt(0)),
 			y: Number(id.charAt(2)),
-			id: id
+			tileId: id
 		}
 		return tilePoint;
 	};
@@ -113,7 +113,28 @@ function Map(width, height) {
 		this.updateMap();
 		return unit;
 	};
-		
+
+	/*
+	*	addStart(point)
+	*	==================================
+	*	Adds a visual start point on the map. Primary used for debugging.
+	*/
+	this.addStart = function(point) {
+		console.log(point);
+		this.tiles[point.tileId]['start'] = {init: true};
+		this.updateMap();
+	};
+	
+	/*
+	*	addFinish(point)
+	*	==================================
+	*	Adds a visual start point on the map. Primary used for debugging.
+	*/
+	this.addFinish = function(point) {
+		console.log(point);
+		this.tiles[point.tileId]['finish'] = {init: true};
+		this.updateMap();
+	};
 	
 	/*
 	*	updateMap()
@@ -122,20 +143,24 @@ function Map(width, height) {
 	*	unrendered units, terrain, paths, and other objects.
 	*/
 	this.updateMap = function() {
-		for(tile in this.tiles) {			
-			if(this.tiles[tile]['terrain']) {
-				document.getElementById(tile).className += " " + this.tiles[tile]['terrain']['name'];
-				//this.tiles[tile]['terrain']['rendered'] = true;				
+		console.log('updating map');
+		Y.each(this.tiles, function(tile,key) {
+			if(Y.Object.hasKey(tile,'terrain')) {
+				document.getElementById(key).className += " " + this.tiles[key]['terrain']['name'];
 			}
-			if(this.tiles[tile]['unit']) {			
-				document.getElementById(tile).className += " " + this.tiles[tile]['unit']['name'];
-				// this.tiles[tile]['unit']['rendered'] = true;		
+			if(Y.Object.hasKey(tile,'unit')) {
+				document.getElementById(key).className += " " + this.tiles[key]['unit']['name'];
 			}
-			if(this.tiles[tile]['path']) {
-				document.getElementById(tile).className += " path";
-				//this.tiles[tile]['path']['rendered'] = true;
+			if(Y.Object.hasKey(tile,'path')) {
+				document.getElementById(key).className += " path";
 			}
-		}				
+			if(Y.Object.hasKey(tile,'start')) {
+				document.getElementById(key).className += " start";
+			}
+			if(Y.Object.hasKey(tile,'finish')) {
+				document.getElementById(key).className += " finish";
+			}
+		}, this);
 	}
 	
 	/*

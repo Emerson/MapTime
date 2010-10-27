@@ -10,6 +10,9 @@
 	#map {position: absolute; top: 200px; left: 350px; -webkit-perspective: 1000; width: 1010px; height: 808px; border-top: 1px solid #ccc;  border-left: 1px solid #efefef;  -webkit-transform: rotate(-45deg) skew(15deg, 15deg);}
 	#map div {width: 100px; height: 100px; border-right: 1px solid #ccc; border-bottom: 1px solid #ccc; float: left; position: relative; background: url(images/earth.jpg);}
 	.tileNumber {position: absolute; bottom: 3px; right: 3px;}
+	#map .start {background: green;}
+	#map .finish {background: red;}
+	
 	
 	/* UNITS */
 	#map .infantry {background: green; background-image:none;}
@@ -31,6 +34,14 @@
 	<h1>Map Generator</h1>
     
     <div id="map"></div>
+
+	<div id="debugPanel">
+		<ul>
+		<li class="findPath"><a href="#">findpath</a></li>
+		<li class="start"><a href="#">start</a></li>
+		<li class="finish"><a href="#">finish</a></li>
+		</ul>
+	</div>
 
 <script type="text/javascript" charset="utf-8">
 </script>
@@ -75,13 +86,19 @@ var mappy = Y.namespace('MapTime', 'MapTime.bb', 'MapTime.yy');
 // 	});
 // 	
 // });
-
+YUI().use('event', function(Y) {
+	
 	var MAP = function() {
 			
 		var point = {};
 		var map = new Map(10,8);
 		map.buildMap();
-		map.printMap('map','div');
+		map.printMap('map','div');				
+		
+		
+		// Click States
+		var placeStart = false;
+		var placeFinish = false;		
 		
 		// A Type of Landscape
 		var mountain = {
@@ -92,43 +109,58 @@ var mappy = Y.namespace('MapTime', 'MapTime.bb', 'MapTime.yy');
 			passable: false,
 			rendered: false
 		};		
+											
+		// Click find path
+		Y.on('click', function(e) {
+			var path;
+			var start = Y.one('.start');
+			var finish = Y.one('.finish');
+			start = map.tileIdToPoint(start._node.id);
+			finish = map.tileIdToPoint(finish._node.id);
+			PathFinder = new PathFinder(map);
+			PathFinder.findPath(start, finish); // stores a path object referenced by id
+			path = PathFinder.closedTiles;
+			map.highlightPath(path);
+			console.log(start, 'start');
+			console.log(finish, 'finish');
+			alert('clicked find path');
+			e.preventDefault();
+		}, ".findPath");
 		
-		point = map.generatePoint(4,6);
-		map.placeTerrain(point,mountain);
-		point = map.generatePoint(3,4);
-		map.placeTerrain(point,mountain);
-		point = map.generatePoint(3,3);
-		map.placeTerrain(point,mountain);
-		point = map.generatePoint(5,6);
-		map.placeTerrain(point,mountain);
-		point = map.generatePoint(6,6);
-		map.placeTerrain(point,mountain);
+		// Click start
+		Y.on('click', function(e) {
+			placeStart = true;
+			e.preventDefault();			
+		}, ".start");
 		
-		
-		var infantry = {
-			name: 'infantry',	
-			hitpoints: 15,
-			strength: 5,
-			movementCost: 2
-		};		
-		
-		
-		point = map.generatePoint(1,2);
-		var endpoint = map.generatePoint(5,7);
-		var emerson = map.placeUnit(point,infantry);
-		
-		
-		PathFinder = new PathFinder(map);
-		PathFinder.findPath(point, endpoint); // stores a path object referenced by id	
-		var emersonPath = PathFinder.closedTiles;
-		
-		map.highlightPath(emersonPath);
-		console.log('moving emerson along the path: ');
-		console.log(emersonPath);
+		// Click start
+		Y.on('click', function(e) {
+			placeFinish = true;
+			e.preventDefault();			
+		}, ".finish");
 	
-		
+		Y.on('click', handleClick, "#map div");
+		function handleClick(e) {
+			if(placeStart) {
+				var clickPoint = map.tileIdToPoint(e.target._node.id);
+				map.addStart(clickPoint);
+				placeStart = false;
+				
+			}
+			else if(placeFinish) {
+				var clickPoint = map.tileIdToPoint(e.target._node.id);
+				map.addFinish(clickPoint);
+				placeFinish = false;
+			}
+			else{
+				var clickPoint = map.tileIdToPoint(e.target._node.id);
+				map.placeTerrain(clickPoint,mountain);
+			}		
+		}
 	};
 	MAP();
+	
+});	
 	
 	// Create and intialize a new game map
 	// map = new Map(10,8);
