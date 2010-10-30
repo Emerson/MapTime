@@ -56,11 +56,12 @@ function Map(width, height) {
 	*	Takes a string tile id (eg. 3-5) and returns a point object.
 	*/
 	this.tileIdToPoint = function(id) {
+		var split = id.split('-')
 		var tilePoint = {
-			x: Number(id.charAt(0)),
-			y: Number(id.charAt(2)),
+			x: Number(split[0]),
+			y: Number(split[1]),
 			tileId: id
-		}
+		};		
 		return tilePoint;
 	};
 	

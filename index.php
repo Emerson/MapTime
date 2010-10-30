@@ -96,16 +96,18 @@ YUI().use('event', function(Y) {
 		Y.on('click', function(e) {
 			var path;
 			var start = Y.one('.start');
-			var finish = Y.one('.finish');
-			start = map.tileIdToPoint(start._node.id);
-			finish = map.tileIdToPoint(finish._node.id);
-			PathFinder = new PathFinder(map);
-			PathFinder.findPath(start, finish); // stores a path object referenced by id
-			path = PathFinder.closedTiles;
-			map.highlightPath(path);
+			var finish = Y.one('.finish');						
 			console.log(start, 'start');
 			console.log(finish, 'finish');
-			alert('clicked find path');
+			start = map.tileIdToPoint(start._node.id);
+			finish = map.tileIdToPoint(finish._node.id);
+			console.log(start, 'point start');
+			console.log(finish, 'point finish');
+			PathFinder = new PathFinder(map);
+			path = PathFinder.findPath(start, finish); // stores a path object referenced by id
+			// path = PathFinder.closedTiles; // stupid pathfinding
+			map.highlightPath(path);
+			// alert('clicked find path');
 			e.preventDefault();
 		}, ".findPath");
 		

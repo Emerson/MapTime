@@ -1,3 +1,30 @@
+// Pseudo-code A* from http://wiki.gamegardens.com/Path_Finding_Tutorial
+//
+//     create the open list of nodes, initially containing only our starting node
+//    create the closed list of nodes, initially empty
+//    while (we have not reached our goal) {
+//        consider the best node in the open list (the node with the lowest f value)
+//        if (this node is the goal) {
+//            then we're done
+//        }
+//        else {
+//            move the current node to the closed list and consider all of its neighbors
+//            for (each neighbor) {
+//                if (this neighbor is in the closed list and our current g value is lower) {
+//                    update the neighbor with the new, lower, g value 
+//                    change the neighbor's parent to our current node
+//                }
+//                else if (this neighbor is in the open list and our current g value is lower) {
+//                    update the neighbor with the new, lower, g value 
+//                    change the neighbor's parent to our current node
+//                }
+//                else this neighbor is not in either the open or closed list {
+//                    add the neighbor to the open list and set its g value
+//                }
+//            }
+//        }
+//    }
+
 function PathFinder(map) {
 		
 	this.squareCost = 10;
@@ -14,14 +41,34 @@ function PathFinder(map) {
 	*	A* Concept taken from: http://www.policyalmanac.org/games/aStarTutorial.htm
 	*/
 	this.findPath = function(pointA,pointB) {
+		
 		var potentialTiles = {};
 		var lowestCostTile = {};
+		
+		// return false if we have more tries than there are tiles (avoids infinate loops)
 		if(this.tries > (map.width * map.height)) {
 			return false;
 		}
+		this.tries++;
+		
+		// Add our starting node
 		this.addToOpen(pointA);
-		var adjacentTiles = this.getAdjacentTiles(pointA);	
-		// Set parent data for adjacent tiles
+				
+		// Get adjacent tiles that are not impassible
+		var adjacentTiles = this.getAdjacentTiles(pointA);		
+		
+		if(Y.Object.size(adjacentTiles)==0) {
+			console.log('no adjacentTiles, looking for nearest open');
+			var nearestOpen = this.findNearestOpenTile();			
+			if(nearestOpen) {
+				console.log('checking if '+nearestOpen['tileId']+' has any open tiles', 'findPath');
+				this.findPath(nearestOpen,pointB);
+			}else{
+				console.log('Path not found, hit dead end at '+pointA['tileId'], 'findPath');
+				return false;
+			}
+		}	
+		
 		Y.each(adjacentTiles, function(tile) {
 			var gCost = this.calculateGCost(tile,pointA);
 			var parentTile = {
@@ -77,12 +124,11 @@ function PathFinder(map) {
 		// console.log(this.tries, 'tries');
 		// console.log(this.closedTiles, 'closedTiles');	
 		console.log(lowestCostTile, 'closing tile... '+lowestCostTile.tileId);		
-		this.addToClosed(lowestCostTile);
-		this.tries++;
+		this.addToClosed(lowestCostTile);	
 		if(this.isClosed(pointB)) {
-			console.log('Path found!', 'complete');
-			// var finalPath = calculateFinalPath(pointB);
-			return this.closedTiles;
+			console.log('Path found! Checking closed tiles for optimal path!', 'complete');
+			var bestPath = this.getBestPath(pointB);			
+			return bestPath;
 		}else{
 			console.log('Running function again', 'processing...');
 			this.findPath(lowestCostTile,pointB);
@@ -90,11 +136,97 @@ function PathFinder(map) {
 	};
 	
 	/*
+	*	findNearestOpenTile()
+	*	==================================
+	*	Follows back through parent tiles looking for open tiles. If an option tile is found the
+	*	method simply returns the current tile (point), otherwise, it returns false and recursivly calls itself.
+	*	It will	also return false if the current tile does not have a parent (and is thus the original starting point)
+	*/
+	this.findNearestOpenTile = function() {
+		console.log('starting open tile find','findNearestOpenTile');
+		var lowestCost = false;	
+		Y.each(this.openTiles, function(tile,key) {
+			if(Y.Object.hasKey(lowestCost,'g')) {
+				if(tile.g < lowestCost.g) {
+					lowestCost = tile;
+				}
+			}else{
+				lowestCost = tile;
+			}			
+		}, this);
+		console.log(lowestCost, 'findNearestOpenTile returning '+lowestCost.tileId);
+		return lowestCost;
+	};
+	
+	
+	/*
+	*	getBestPath(endpoint)
+	*	==================================
+	*	Used if the endpoint is now closed, meaning a path has been found. This function starts
+	*	at the last tile and traces back an optimal path by comparing adjacent closed tiles.
+	*/
+	this.getBestPath = function(endpoint) {
+		// We need to return an array of objects rather than just an object of objects. Although most
+		// browsers will loop through an object of objects in the order you added them,
+		// it is not considered 'correct' javascript and actually has some bugs in Chrome. So,
+		// to avoid any issues, we need to pass back an array of objects that is ordered correctly.
+		// Unlike objects of objects, arrays of objects will maintain their order.
+		// Check out: http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predicatble-when-looping-through-th
+		console.log('calculating best path', 'getBestPath');		
+		var bestPath = [];
+		var closedAdjacentTiles = {};
+		// Step 1. Lets just get our closed tiles into an array (refactor eventually)
+		Y.each(this.closedTiles, function(tile,key) {				
+			closedAdjacentTiles[tile.tileId] = this.getClosedAdjacentTiles(tile);			
+			bestPath.push(this.closedTiles[key]);
+		},this);
+		// return bestPath;
+		// console.log(bestPath,'bestPath Array');
+		// var parentTile;
+		// 	if(Y.Object.hasKey(endpoint,'parent')) {
+		// 		bestPath[this.closedTiles[endpoint]]
+		// 	}else{
+		// 		return bestPath;
+		// 	}
+	};	
+	
+	
+	/*
+	*	getClosedAdjacentTiles(tile)
+	*	==================================
+	*	Returns an object of adjacent, closed tiles. 
+	*/
+	this.getClosedAdjacentTiles = function(tile) {
+		var adjacentTiles = {
+			'top_left': {'x': tile['x']-1, 'y': tile['y']-1},
+			'top': {'x': tile['x'], 'y': tile['y']-1},
+			'top_right': {'x': tile['x']+1, 'y': tile['y']-1},
+			'right' : {'x': tile['x']+1, 'y': tile['y']},
+			'bottom_right': {'x': tile['x']+1, 'y': tile['y']+1},
+			'bottom': {'x': tile['x'], 'y': tile['y']+1},
+			'bottom_left': {'x': tile['x']-1, 'y': tile['y']+1},
+			'left': {'x': tile['x']-1, 'y': tile['y']}
+		};
+		var closedAdjacentTiles = {};
+		// Remove any tiles that are currently not on a closed list
+		Y.each(adjacentTiles, function(adjacentTile,key) {
+			var tileId = adjacentTile.x+'-'+adjacentTile.y;
+			if(!Y.Object.hasKey(this.closedTiles[tileId])) {
+				delete adjacentTiles[key];
+			}else{
+				adjacentTiles[tileId] = {x: adjacentTile.x, y: adjacentTile.y, tileId: tileId};
+				delete adjacentTiles[key];
+			}			
+		},this);
+		console.log(adjacentTiles, 'adjacent closed tiles for '+tile.x+'-'+tile.y);
+	};
+	
+	/*
 	*	getAdjacentTiles(point)
 	*	==================================
 	*	Returns an object of adjacent tiles. Ignores impassable terrain and closed tiles.
 	*/
-	this.getAdjacentTiles = function(point) {
+	this.getAdjacentTiles = function(point) {	
 		var adjacentTiles = {
 			'top_left': {'x': point['x']-1, 'y': point['y']-1},
 			'top': {'x': point['x'], 'y': point['y']-1},
@@ -104,12 +236,13 @@ function PathFinder(map) {
 			'bottom': {'x': point['x'], 'y': point['y']+1},
 			'bottom_left': {'x': point['x']-1, 'y': point['y']+1},
 			'left': {'x': point['x']-1, 'y': point['y']}
-		};
+		};	
 		// Loop through and remove invalid tiles
 		Y.each(adjacentTiles, function(tile,key) {			
 			tile.tileId = tile.x+'-'+tile.y;
-			// Remove tiles that are off map
-			if(tile.x < 1 || tile.y < 1 || tile.x > map.width || tile.y > map.height3) {
+			// Remove tiles that are off map			 
+			if(tile.x < 1 || tile.y < 1 || tile.x > map.width || tile.y > map.height) {
+				console.log('removing tile: '+key);
 				delete adjacentTiles[key];
 			}
 			// Remove any tiles that have terrain
@@ -117,16 +250,14 @@ function PathFinder(map) {
 				delete adjacentTiles[key];
 				// console.log('Tile '+key+' has impassable terrain','TERRAIN');
 			}
-			// Remove any tiles already in the closed list
-			console.log('checking if tile '+tile.tileId+' is on the closed list.');
-			// console.log(this.closedTiles, 'CLOSED');
+			// Remove any tiles already in the closed list				
 			if(Y.Object.hasKey(this.closedTiles, tile.tileId)) {
 				console.log('deleting tile '+key+' from adjacentTiles');
 				delete adjacentTiles[key];
-				console.log('Tile '+key+' is already closed impassable terrain','TERRAIN');
+				console.log('Tile '+key+' is already closed','adjacentTiles');
 			}
 		}, this);
-		console.log(adjacentTiles, 'ADJACENT');
+		console.log(adjacentTiles, 'adjacent post delete');
 		return adjacentTiles;
 	};
 	
