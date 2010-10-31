@@ -173,6 +173,7 @@ function Map(width, height) {
 		//Y.each(this.tiles, function(tile, index) {
 		// 		console.log(tile);
 		// 	});
+		console.log(path,'highlighting path tiles');
 		Y.each(path, function(tile) {
 			console.log(tile,'pathfinding');
 			this.tiles[tile.tileId]['path'] = {init: true};

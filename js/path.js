@@ -147,16 +147,16 @@ function PathFinder(map) {
 		
 		// If we have the endpoint in the closed tiles object, then the path is complete
 		// and needs to be optimized.
-		// note: protect this from looping by only allowing this.getBestPath to fire once		
+		// note: protect this from looping by only allowing this.getBestPath to fire once				
 		if (this.isClosed(pointB) && Y.Object.size(this.findPath) == 0) {
 			console.log('Path found! Checking closed tiles for optimal path!', 'complete');
-			var bestPath = this.getBestPath(pointB);
-			return bestPath;
+			var bestPath = this.getBestPath(pointB);			
 		} else {
 			console.log('Running function again', 'processing...');
 			this.findPath(lowestCostTile, pointB);
 		}
-		return false;
+		
+		return bestPath;
 	};
 
 	/*

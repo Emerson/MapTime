@@ -104,9 +104,9 @@ YUI().use('event', function(Y) {
 			console.log(start, 'point start');
 			console.log(finish, 'point finish');
 			PathFinder = new PathFinder(map);
-			path = PathFinder.findPath(start, finish); // stores a path object referenced by id
+			PathFinder.findPath(start, finish); // stores a path object referenced by id		
 			// path = PathFinder.closedTiles; // stupid pathfinding
-			map.highlightPath(path);
+			map.highlightPath(PathFinder.finalPath);
 			// alert('clicked find path');
 			e.preventDefault();
 		}, ".findPath");
