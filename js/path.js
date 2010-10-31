@@ -78,6 +78,7 @@ function PathFinder(map) {
 			console.log('no adjacentTiles, looking for nearest open');
 			var nearestOpen = this.findNearestOpenTile();
 			if (nearestOpen) {
+				this.addToClosed(nearestOpen);
 				console.log('checking if ' + nearestOpen['tileId'] + ' has any open tiles', 'findPath');
 				this.findPath(nearestOpen, pointB);
 			} else {
@@ -169,17 +170,29 @@ function PathFinder(map) {
 	this.findNearestOpenTile = function() {
 		console.log('starting open tile find', 'findNearestOpenTile');
 		var lowestCost = false;
-		Y.each(this.openTiles, function(tile, key) {
-			if (Y.Object.hasKey(lowestCost, 'g')) {
-				if (tile.g < lowestCost.g) {
+		// if there are any open tiles left
+		if(Y.Object.size(this.openTiles) > 1) {					
+		
+			Y.each(this.openTiles, function(tile, key) {
+				if (Y.Object.hasKey(lowestCost, 'g')) {
+					if (tile.g < lowestCost.g) {
+						lowestCost = tile;
+					}
+				} else {
 					lowestCost = tile;
 				}
-			} else {
-				lowestCost = tile;
+			},
+			this);
+			// If it has no open neighbors, remove it from this.openTiles (it's a dead end)
+			var adjacentOpenTiles = this.getAdjacentTiles(lowestCost);
+		
+			if(!Y.Object.size(adjacentOpenTiles) > 0) {
+				console.log(lowestCost, 'Removing tile '+lowestCost['tileId']+' from this.openTiles');
+				this.removeFromOpen(lowestCost);
+				this.findNearestOpenTile();
 			}
-		},
-		this);
-		console.log(lowestCost, 'findNearestOpenTile returning ' + lowestCost.tileId);
+			console.log(lowestCost, 'findNearestOpenTile returning ' + lowestCost.tileId);
+		}
 		return lowestCost;
 	};
 
@@ -198,7 +211,7 @@ function PathFinder(map) {
 		// Check out: http://stackoverflow.com/questions/648139/is-the-order-of-fields-in-a-javascript-object-predicatble-when-looping-through-th		
 		// loop protection
 		var foundPath = false;
-		if (this.bestPathtries > 10) {
+		if (this.bestPathtries > (map.width * map.height)) {
 			return false;
 		}
 		this.bestPathtries++;
@@ -230,7 +243,7 @@ function PathFinder(map) {
 		console.log('CALCULATING FINAL PATH');
 		var foundPath = false;
 		// Loop Protection
-		if (this.bestPathtries > 20) {
+		if (this.bestPathtries > (map.width * map.height) ) {
 			return false;
 		}
 		this.bestPathtries++;
@@ -392,7 +405,11 @@ function PathFinder(map) {
 		},
 		this);
 		console.log(adjacentTiles, 'adjacent post delete');
-		return adjacentTiles;
+		if(adjacentTiles.length==0) {
+			return false;
+		}else{
+			return adjacentTiles;
+		}
 	};
 
 	/*
@@ -441,6 +458,19 @@ function PathFinder(map) {
 		if (Y.Object.hasKey(this.closedTiles, tile.tileId)) {
 			delete this.closedTiles[tile.tileId];
 		}
+	};
+	
+	/*
+	*	removeFromOpen(tile)
+	*	==================================
+	*	Removes a tile from this.openTiles. Used when finding alternate routes, specifically when
+	*	an open tile does not have any adjacent open tiles.
+	*/
+	this.removeFromOpen = function(tile) {
+		if (Y.Object.hasKey(this.openTiles, tile.tileId)) {
+			delete this.openTiles[tile.tileId];			
+		}
+		return true;
 	};
 
 	/*
