@@ -35,39 +35,6 @@
 
 (function() {
 
-var mappy = Y.namespace('MapTime', 'MapTime.bb', 'MapTime.yy');
-//     bb = Y.namespace('MapTime.bb');
-// mappy.foo();
-
-  
-})();
-
-
-// Y.use('console','console-filters','dump', function(Y) {
-// 
-// 
-// 
-// 
-// 
-// 	new Y.Console({plugins: [ Y.Plugin.ConsoleFilters ], logSource: Y.Global}).render();
-// 	
-// 	var newAr = ['foor', 'baaarrr'];
-// 	var newO = {'foo': 'bar', 'z': 'y'};
-// 	
-// 	Y.log('foo', 'bar', 'Map');
-// 	
-// 	Y.each(newAr, function(a) {
-// 		Y.log(a,'zz', 'Map');
-// 	});
-// 
-// 	Y.each(newO, function(v,k,o) {
-// 		Y.log(v,'object', 'Map');
-// 		Y.log(k,'object', 'Map');
-// 		Y.log(o,'object', 'Map');
-// 		console.log(o,'object', 'Map');
-// 	});
-// 	
-// });
 YUI().use('event', function(Y) {
 	
 	var MAP = function() {
@@ -97,17 +64,11 @@ YUI().use('event', function(Y) {
 			var path;
 			var start = Y.one('.start');
 			var finish = Y.one('.finish');						
-			console.log(start, 'start');
-			console.log(finish, 'finish');
 			start = map.tileIdToPoint(start._node.id);
 			finish = map.tileIdToPoint(finish._node.id);
-			console.log(start, 'point start');
-			console.log(finish, 'point finish');
 			PathFinder = new PathFinder(map);
 			PathFinder.findPath(start, finish); // stores a path object referenced by id		
-			// path = PathFinder.closedTiles; // stupid pathfinding
 			map.highlightPath(PathFinder.finalPath);
-			// alert('clicked find path');
 			e.preventDefault();
 		}, ".findPath");
 		
