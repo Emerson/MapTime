@@ -66,6 +66,22 @@ function Map(width, height) {
 	};
 	
 	/*
+	*	clearPath()
+	*	==================================
+	*	Clears any paths painted on the map.
+	*/
+	this.clearPath = function() {		
+		Y.each(this.tiles, function(tile, tileId) {
+			if(Y.Object.hasKey(tile, 'path')) {
+				console.log('detete path');
+				delete tile['path'];
+			}
+		}, this);
+		this.updateMap();
+		return true;
+	};
+	
+	/*
 	*	placeTerrain(point, terrainObject)
 	*	==================================
 	*	Adds terrain details to the main map.tiles object. Refer to the mountain example below for a better
@@ -145,21 +161,25 @@ function Map(width, height) {
 	*/
 	this.updateMap = function() {
 		console.log('updating map');
-		Y.each(this.tiles, function(tile,key) {
+		Y.each(this.tiles, function(tile,key) {			
+			// console.log(tileId);
 			if(Y.Object.hasKey(tile,'terrain')) {
-				document.getElementById(key).className += " " + this.tiles[key]['terrain']['name'];
+				Y.one('[id='+key+']').addClass(this.tiles[key]['terrain']['name']);
 			}
 			if(Y.Object.hasKey(tile,'unit')) {
-				document.getElementById(key).className += " " + this.tiles[key]['unit']['name'];
+				var newUnit = document.createElement('a');
+				newUnit.className = this.tiles[key]['unit']['type'];
+				newUnit.href = '#';
+				document.getElementById(key).appendChild(newUnit);
 			}
 			if(Y.Object.hasKey(tile,'path')) {
-				document.getElementById(key).className += " path";
+				Y.one('[id='+key+']').addClass('path');				
 			}
 			if(Y.Object.hasKey(tile,'start')) {
-				document.getElementById(key).className += " start";
+				Y.one('[id='+key+']').addClass('start');		
 			}
 			if(Y.Object.hasKey(tile,'finish')) {
-				document.getElementById(key).className += " finish";
+				Y.one('[id='+key+']').addClass('finish');			
 			}
 		}, this);
 	}
@@ -170,9 +190,6 @@ function Map(width, height) {
 	*	A convenience method used to debug path finding. Given a path object, it will highlight
 	*/
 	this.highlightPath = function(path) {
-		//Y.each(this.tiles, function(tile, index) {
-		// 		console.log(tile);
-		// 	});
 		console.log(path,'highlighting path tiles');
 		Y.each(path, function(tile) {
 			console.log(tile,'pathfinding');

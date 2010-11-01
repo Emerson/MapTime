@@ -51,7 +51,12 @@ function PathFinder(map) {
 	*	A* Concept taken from: http://www.policyalmanac.org/games/aStarTutorial.htm
 	*/
 	this.findPath = function(pointA, pointB) {
-
+		
+		// Make sure we are given a valid tile
+		if(Y.Object.hasKey(map.tiles[pointB.tileId], 'terrain')) {
+			return false;
+		}
+		
 		var potentialTiles = {};
 		var lowestCostTile = {};
 
@@ -59,7 +64,6 @@ function PathFinder(map) {
 		if (!this.startingTile) {
 			this.startingTile = pointA;
 			this.startingTile['g'] = 0;
-			console.log(this.startingTile, 'setting startingTile');
 		}
 
 		// return false if we have more tries than there are tiles (avoids infinate loops)
@@ -75,14 +79,11 @@ function PathFinder(map) {
 		var adjacentTiles = this.getAdjacentTiles(pointA);
 
 		if (Y.Object.size(adjacentTiles) == 0) {
-			console.log('no adjacentTiles, looking for nearest open');
 			var nearestOpen = this.findNearestOpenTile();
 			if (nearestOpen) {
 				this.addToClosed(nearestOpen);
-				console.log('checking if ' + nearestOpen['tileId'] + ' has any open tiles', 'findPath');
 				this.findPath(nearestOpen, pointB);
 			} else {
-				console.log('Path not found, hit dead end at ' + pointA['tileId'], 'findPath');
 				return false;
 			}
 		}
@@ -101,14 +102,10 @@ function PathFinder(map) {
 				h: this.estimateDistanceCost(tile, pointB),
 				g: gCost + this.estimateDistanceCost(tile, pointB)
 			};
-			console.log(tileData, 'tile data for ' + tileData.tileId);
 			// If the tile is already open
 			if (Y.Object.hasKey(this.openTiles, tile.tileId)) {
 				// Recalculate theoretical G cost
-				console.log(this.openTiles[tile.tileId], 'tile ' + tile.tileId + ' is already open');
-				// console.log('already open', 'alrady open '+tile.tileId);				
 			} else {
-				// console.log('adding to open', 'adding to open');
 			}
 			// this.openTiles[tile.x + '-' + tile.y] = {init: true, parent: parentTile}
 			this.openTiles[tile.x + '-' + tile.y] = {
@@ -138,22 +135,16 @@ function PathFinder(map) {
 			} else {
 				lowestCostTile = this.openTiles[tile.tileId];
 			}
-			// console.log(this.openTiles[tile.tileId], 'calculate');
 		},
 		this);
-		// console.log(this.tries, 'tries');
-		// console.log(this.closedTiles, 'closedTiles');	
-		console.log(lowestCostTile, 'closing tile... ' + lowestCostTile.tileId);
 		this.addToClosed(lowestCostTile);
 		
 		// If we have the endpoint in the closed tiles object, then the path is complete
 		// and needs to be optimized.
 		// note: protect this from looping by only allowing this.getBestPath to fire once				
 		if (this.isClosed(pointB) && Y.Object.size(this.findPath) == 0) {
-			console.log('Path found! Checking closed tiles for optimal path!', 'complete');
 			var bestPath = this.getBestPath(pointB);			
 		} else {
-			console.log('Running function again', 'processing...');
 			this.findPath(lowestCostTile, pointB);
 		}
 		
@@ -168,7 +159,6 @@ function PathFinder(map) {
 	*	It will	also return false if the current tile does not have a parent (and is thus the original starting point)
 	*/
 	this.findNearestOpenTile = function() {
-		console.log('starting open tile find', 'findNearestOpenTile');
 		var lowestCost = false;
 		// if there are any open tiles left
 		if(Y.Object.size(this.openTiles) > 1) {					
@@ -187,11 +177,9 @@ function PathFinder(map) {
 			var adjacentOpenTiles = this.getAdjacentTiles(lowestCost);
 		
 			if(!Y.Object.size(adjacentOpenTiles) > 0) {
-				console.log(lowestCost, 'Removing tile '+lowestCost['tileId']+' from this.openTiles');
 				this.removeFromOpen(lowestCost);
 				this.findNearestOpenTile();
 			}
-			console.log(lowestCost, 'findNearestOpenTile returning ' + lowestCost.tileId);
 		}
 		return lowestCost;
 	};
@@ -218,7 +206,6 @@ function PathFinder(map) {
 
 		// first, if it's not already there, let's add the final tile to our final path array
 		if (Y.Object.size(this.finalPath) == 0) {
-			console.log(this.closedTiles[endpoint.tileId], 'pushing end tile to final path');			
 			this.finalPath.push(this.closedTiles[endpoint.tileId]);
 		}
 		
@@ -226,7 +213,6 @@ function PathFinder(map) {
 		this.calculateFinalPath();
 		if(Y.Object.hasKey(this.finalPath[this.finalPath.length-1],'tileId') 
 			&& this.finalPath[this.finalPath.length-1].tileId == this.startingTile.tileId) {
-				console.log(this.finalPath, "YEAH BABY, FINAL PATH IS HERE!");
 		}else{
 			return false;
 		}
@@ -240,7 +226,6 @@ function PathFinder(map) {
 	*/
 	this.calculateFinalPath = function() {
 		
-		console.log('CALCULATING FINAL PATH');
 		var foundPath = false;
 		// Loop Protection
 		if (this.bestPathtries > (map.width * map.height) ) {
@@ -251,11 +236,9 @@ function PathFinder(map) {
 		
 		Y.some(this.finalPath, function(tile,index) {
 			
-			console.log(tile, 'looking at '+tile.tileId);
 			
 			// If the starting tile is here, return the final path
 			if( tile.tileId == this.startingTile.tileId) {
-				console.log(this.finalPath, 'FULL AND FINAL PATH FOUND!');
 				return true;			
 			}
 			
@@ -276,14 +259,12 @@ function PathFinder(map) {
 						}
 					});
 					tile['cast'] = true;
-					console.log(lowestCostTile, 'adding '+lowestCostTile.tileId+' to this.finalPath');
 					this.finalPath.push(lowestCostTile);
 					this.calculateFinalPath();
 				}
 				else if(adjacentClosedTiles.length == 1) {
 					// just add the first (and only) adjacentClosedTile and cast the previous one (parent)
 					tile['cast'] = true;
-					console.log(adjacentClosedTiles[0], 'adding '+adjacentClosedTiles[0].tileId+' to this.finalPath (no compare)');
 					this.finalPath.push(adjacentClosedTiles[0]);
 					this.calculateFinalPath();
 				}
@@ -367,13 +348,10 @@ function PathFinder(map) {
 		this);
 		// return the closedAdjacentTiles, or false if there are none
 		if (Y.Object.size(closedAdjacentTiles) == 0) {
-			console.log('returning false', 'closedAdjacentTiles');
 			return false;
 		} else {
-			console.log(closedAdjacentTiles, 'closedAdjacentTiles');
 			return closedAdjacentTiles;
 		}
-		console.log(adjacentTiles, 'adjacent closed tiles for ' + tile.x + '-' + tile.y);
 	};
 
 	/*
@@ -388,23 +366,18 @@ function PathFinder(map) {
 			tile.tileId = tile.x + '-' + tile.y;
 			// Remove tiles that are off map			 
 			if (tile.x < 1 || tile.y < 1 || tile.x > map.width || tile.y > map.height) {
-				console.log('removing tile: ' + key);
 				delete adjacentTiles[key];
 			}
 			// Remove any tiles that have terrain
 			if (Y.Object.hasKey(map.tiles[tile.tileId], 'terrain')) {
 				delete adjacentTiles[key];
-				// console.log('Tile '+key+' has impassable terrain','TERRAIN');
 			}
 			// Remove any tiles already in the closed list				
 			if (Y.Object.hasKey(this.closedTiles, tile.tileId)) {
-				console.log('deleting tile ' + key + ' from adjacentTiles');
 				delete adjacentTiles[key];
-				console.log('Tile ' + key + ' is already closed', 'adjacentTiles');
 			}
 		},
 		this);
-		console.log(adjacentTiles, 'adjacent post delete');
 		if(adjacentTiles.length==0) {
 			return false;
 		}else{
@@ -433,10 +406,7 @@ function PathFinder(map) {
 		(this.isDiagonal(tile, parentTile)) ? gCost = 14 : gCost = 10;
 		if (Y.Object.hasKey(this.openTiles[parentTile.tileId], 'g')) {
 			gCost = gCost + this.openTiles[parentTile.tileId]['g'];
-			// console.log(this.openTiles[parentTile.tileId], 'parentTile');
-			// console.log('ADD THE G!!!!!!!','addtheg');
 		}
-		// console.log(parentTile.tileId,'CALCULATE');
 		return gCost;
 	};
 
@@ -525,7 +495,6 @@ function PathFinder(map) {
 		var xDistance = Math.abs(pointA['x'] - pointB['x']);
 		var yDistance = Math.abs(pointA['y'] - pointB['y']);
 		var estimatedCost = (xDistance + yDistance) * this.squareCost;
-		// console.log('estimating distance between: '+pointA['x']+','+pointA['y']+' and '+pointB['x']+','+pointB['y']+' at: '+estimatedCost);	
 		return estimatedCost;
 	}
 
