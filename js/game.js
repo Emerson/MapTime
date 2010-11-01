@@ -120,7 +120,7 @@ YUI().use('event', 'event-key', function(Y) {
 	
 		Y.on('click', handleClick, "#map div");
 		function handleClick(e) {			
-			else if(placeFinish) {
+			if(placeFinish) {
 				var clickPoint = map.tileIdToPoint(e.target._node.id);
 				map.addFinish(clickPoint);
 				placeFinish = false;
