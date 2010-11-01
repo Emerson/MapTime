@@ -40,11 +40,7 @@ YUI().use('event', 'event-key', function(Y) {
 			id: 1
 		};
 		var player1 = new Player(map, playerData);
-		
-		
-		console.log(map.tiles);		
-		
-		
+				
 		// Click States
 		var placeStart = false;
 		var placeFinish = false;
@@ -81,32 +77,23 @@ YUI().use('event', 'event-key', function(Y) {
 		Y.on('click', function(e) {
 			var path;
 			var start = Y.one('.start');
-			var finish = Y.one('.finish');						
-			console.log(start, 'start');
-			console.log(finish, 'finish');
+			var finish = Y.one('.finish');
 			start = map.tileIdToPoint(start._node.id);
 			finish = map.tileIdToPoint(finish._node.id);
-			console.log(start, 'point start');
-			console.log(finish, 'point finish');
 			PathFinder = new PathFinder(map);
-			PathFinder.findPath(start, finish); // stores a path object referenced by id		
+			PathFinder.findPath(start, finish); // stores a path object referenced by id
 			// path = PathFinder.closedTiles; // stupid pathfinding
 			map.highlightPath(PathFinder.finalPath);
 			// alert('clicked find path');
 			e.preventDefault();
 		}, ".findPath");
 		
-		// Click start
-		Y.on('click', function(e) {
-			placeStart = true;
-			e.preventDefault();			
-		}, ".start");
-		
 		
 		/*
 		*	When an infantry unit is clicked...
 		*/
-		Y.on('click', function(e) {			
+		Y.on('click', function(e) {
+			console.log('infantry click');	
 			var tileId = e.target.get('parentNode').get('id');
 			selectedUnit = map.tiles[tileId]['unit'];
 			selectedUnit['tileId'] = tileId;
@@ -132,13 +119,7 @@ YUI().use('event', 'event-key', function(Y) {
 		}, '.addUnit');
 	
 		Y.on('click', handleClick, "#map div");
-		function handleClick(e) {
-			if(placeStart) {
-				var clickPoint = map.tileIdToPoint(e.target._node.id);
-				map.addStart(clickPoint);
-				placeStart = false;
-				
-			}
+		function handleClick(e) {			
 			else if(placeFinish) {
 				var clickPoint = map.tileIdToPoint(e.target._node.id);
 				map.addFinish(clickPoint);
@@ -149,8 +130,10 @@ YUI().use('event', 'event-key', function(Y) {
 				player1.addUnit(clickPoint,infantry);
 				addUnit = false;
 			}
-			else{				
+			else{
+				console.log(selectedUnit);
 				if(Y.Object.size(selectedUnit) == 0) {
+					console.log('no active unit, adding terrain instead');
 					var clickPoint = map.tileIdToPoint(e.target._node.id);
 					map.placeTerrain(clickPoint,mountain);
 				}

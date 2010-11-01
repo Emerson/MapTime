@@ -77,7 +77,6 @@ function PathFinder(map) {
 
 		// Get adjacent tiles that are not impassible
 		var adjacentTiles = this.getAdjacentTiles(pointA);
-
 		if (Y.Object.size(adjacentTiles) == 0) {
 			var nearestOpen = this.findNearestOpenTile();
 			if (nearestOpen) {
@@ -87,7 +86,7 @@ function PathFinder(map) {
 				return false;
 			}
 		}
-
+		
 		Y.each(adjacentTiles, function(tile) {
 			var gCost = this.calculateGCost(tile, pointA);
 			var parentTile = {
@@ -360,28 +359,25 @@ function PathFinder(map) {
 	*	Returns an object of adjacent tiles. Ignores impassable terrain and closed tiles.
 	*/
 	this.getAdjacentTiles = function(point) {
-		var adjacentTiles = this.adjacentTiles(point);
-		// Loop through and remove invalid tiles
+		var adjacentTiles = this.adjacentTiles(point);		
+		var validAdjacentTiles = {};
+		// Loop through and get a list of valid tiles
 		Y.each(adjacentTiles, function(tile, key) {
-			tile.tileId = tile.x + '-' + tile.y;
-			// Remove tiles that are off map			 
-			if (tile.x < 1 || tile.y < 1 || tile.x > map.width || tile.y > map.height) {
-				delete adjacentTiles[key];
-			}
-			// Remove any tiles that have terrain
-			if (Y.Object.hasKey(map.tiles[tile.tileId], 'terrain')) {
-				delete adjacentTiles[key];
-			}
-			// Remove any tiles already in the closed list				
-			if (Y.Object.hasKey(this.closedTiles, tile.tileId)) {
-				delete adjacentTiles[key];
+			var tileId = tile.x + '-' + tile.y;			
+			if( !(tile.x < 1 || tile.y < 1 || tile.x > map.width || tile.y > map.height) &&
+			    !(Y.Object.hasKey(map.tiles[tileId], 'terrain')) &&
+			    !(Y.Object.hasKey(this.closedTiles, tileId))
+			  )
+			{	
+				validAdjacentTiles[key] = tile;
+				validAdjacentTiles[key]['tileId'] = tileId;
 			}
 		},
 		this);
-		if(adjacentTiles.length==0) {
+		if(validAdjacentTiles.length==0) {
 			return false;
 		}else{
-			return adjacentTiles;
+			return validAdjacentTiles;
 		}
 	};
 
