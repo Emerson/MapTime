@@ -166,10 +166,11 @@ function Map(width, height) {
 			if(Y.Object.hasKey(tile,'terrain')) {
 				Y.one('[id='+key+']').addClass(this.tiles[key]['terrain']['name']);
 			}
-			if(Y.Object.hasKey(tile,'unit')) {
+			if(Y.Object.hasKey(tile,'unit') && tile['unit']['rendered'] == false) {
 				var newUnit = document.createElement('a');
 				newUnit.className = this.tiles[key]['unit']['type'];
 				newUnit.href = '#';
+				tile['unit']['rendered'] = true;
 				document.getElementById(key).appendChild(newUnit);
 			}
 			if(Y.Object.hasKey(tile,'path')) {
