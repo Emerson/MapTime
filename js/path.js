@@ -42,6 +42,22 @@ function PathFinder(map) {
 	this.finalPath = [];
 	this.tries = 0;
 	this.bestPathtries = 0;
+	this.breakpoint = false;
+	
+	/*
+	*	reset()
+	*	==================================
+	*	Resets the object
+	*/
+	this.resetObject = function() {
+		this.startingTile = false;
+		this.openTiles = {};
+		this.closedTiles = {};
+		this.finalPath = [];
+		this.tries = 0;
+		this.bestPathtries = 0;
+		this.breakpoint = false;
+	};
 
 	/*
 	*	findPath(start,end)
@@ -54,6 +70,10 @@ function PathFinder(map) {
 		
 		// Make sure we are given a valid tile
 		if(Y.Object.hasKey(map.tiles[pointB.tileId], 'terrain')) {
+			return false;
+		}
+		
+		if(this.breakpoint) {
 			return false;
 		}
 		
@@ -87,6 +107,10 @@ function PathFinder(map) {
 			}
 		}
 		
+		if(this.breakpoint) {
+			return false;
+		}
+		
 		Y.each(adjacentTiles, function(tile) {
 			var gCost = this.calculateGCost(tile, pointA);
 			var parentTile = {
@@ -114,6 +138,10 @@ function PathFinder(map) {
 		},
 		this);
 		// Check if an adjacent tile is already open
+		
+		if(this.breakpoint) {
+			return false;
+		}
 
 		// Add the current tile to the closed list if it's not already present
 		this.addToClosed(pointA);
@@ -137,6 +165,10 @@ function PathFinder(map) {
 		},
 		this);
 		this.addToClosed(lowestCostTile);
+		
+		if(this.breakpoint) {
+			return false;
+		}
 		
 		// If we have the endpoint in the closed tiles object, then the path is complete
 		// and needs to be optimized.
@@ -362,7 +394,7 @@ function PathFinder(map) {
 		var adjacentTiles = this.adjacentTiles(point);		
 		var validAdjacentTiles = {};
 		// Loop through and get a list of valid tiles
-		Y.each(adjacentTiles, function(tile, key) {
+		Y.each(adjacentTiles, function(tile, key) {			
 			var tileId = tile.x + '-' + tile.y;			
 			if( !(tile.x < 1 || tile.y < 1 || tile.x > map.width || tile.y > map.height) &&
 			    !(Y.Object.hasKey(map.tiles[tileId], 'terrain')) &&

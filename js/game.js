@@ -1,5 +1,5 @@
 // Get your game on...
-YUI().use('event', 'event-key', function(Y) {
+YUI().use('event', 'event-key', 'node', function(Y) {
 	
 	
 	/* Add much needed hover support to YUI */
@@ -69,9 +69,11 @@ YUI().use('event', 'event-key', function(Y) {
 			var nextTurn = function() {
 				turn++;				
 				Y.one('.turnCounter').set('innerHTML', turn);
-				console.log('the current turn is: '+turn);
+				// console.log('the current turn is: '+turn);
 				map.updateMap();
 			};
+			
+		var PathFinderObject = new PathFinder(map);	
 											
 		// Click find path
 		Y.on('click', function(e) {
@@ -80,10 +82,10 @@ YUI().use('event', 'event-key', function(Y) {
 			var finish = Y.one('.finish');
 			start = map.tileIdToPoint(start._node.id);
 			finish = map.tileIdToPoint(finish._node.id);
-			PathFinder = new PathFinder(map);
-			PathFinder.findPath(start, finish); // stores a path object referenced by id
+			PathFinderObject = new PathFinder(map);
+			PathFinderObject.findPath(start, finish); // stores a path object referenced by id
 			// path = PathFinder.closedTiles; // stupid pathfinding
-			map.highlightPath(PathFinder.finalPath);
+			map.highlightPath(PathFinderObject.finalPath);
 			// alert('clicked find path');
 			e.preventDefault();
 		}, ".findPath");
@@ -93,11 +95,11 @@ YUI().use('event', 'event-key', function(Y) {
 		*	When an infantry unit is clicked...
 		*/
 		Y.on('click', function(e) {
-			console.log('infantry click');	
+			// console.log('infantry click');	
 			var tileId = e.target.get('parentNode').get('id');
 			selectedUnit = map.tiles[tileId]['unit'];
 			selectedUnit['tileId'] = tileId;
-			console.log(selectedUnit['name']);			
+			// console.log(selectedUnit['name']);			
 			Y.one('.selectedUnit').set('innerHTML', selectedUnit['name']);
 			e.preventDefault(); 
 		}, '.infantry');
@@ -131,9 +133,9 @@ YUI().use('event', 'event-key', function(Y) {
 				addUnit = false;
 			}
 			else{
-				console.log(selectedUnit);
+				// console.log(selectedUnit);
 				if(Y.Object.size(selectedUnit) == 0) {
-					console.log('no active unit, adding terrain instead');
+					// console.log('no active unit, adding terrain instead');
 					var clickPoint = map.tileIdToPoint(e.target._node.id);
 					map.placeTerrain(clickPoint,mountain);
 				}
@@ -143,6 +145,8 @@ YUI().use('event', 'event-key', function(Y) {
 		
 		/* Hover Events */
 		Y.on('mouseenter', function(e) {
+			PathFinderObject.breakpoint = true;
+			PathFinderObject.resetObject();
 			if(Y.Object.size(selectedUnit) > 0) {							
 				Y.all('#map div').removeClass('path');
 				map.clearPath();				
@@ -150,16 +154,24 @@ YUI().use('event', 'event-key', function(Y) {
 				var startTile = map.tileIdToPoint(selectedUnit.tileId);
 				// make sure this is actually passable	
 				if(!Y.Object.hasKey(map.tiles[endTile.tileId], 'terrain') ||
-					!Y.Object.hasKey(map.tiles[endTile.tileId], 'path')) {
-					var unitPathFinder = new PathFinder(map);							
-					var unitPath = unitPathFinder.findPath(startTile, endTile);
+					!Y.Object.hasKey(map.tiles[endTile.tileId], 'path')) {												
+					var unitPath = PathFinderObject.findPath(startTile, endTile);
 					if(unitPath!=false) {
-						map.highlightPath(unitPathFinder.finalPath);
+						map.highlightPath(PathFinderObject.finalPath);
 					}	
 				}
 			}
 		}, '#map div');
 		
+		/* Mouse Event Delegation */
+		Y.on('mouseenter', function(e) {
+			// console.log(e.currentTarget);
+		}, '#map, div, #map a');
+		
+		/* Mouse Event Delegation */
+		Y.on('mouseleave', function(e) {
+			// console.log(e.currentTarget);
+		}, '#map, div, #map a');
 		
 		/* Key events */
 		

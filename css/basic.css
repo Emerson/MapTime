@@ -12,7 +12,7 @@ body {font-family: Arial; color: #cccccc; font-size: 12px; background: url(../im
 
 
 /* UNITS */
-.infantry {display: block; width: 100px; height: 100px; background: #ccc; position: absolute; top: 0px; left: 0px; opacity: ;}
+.infantry {display: block; width: 100px; height: 100px; z-index: 2000; background: url('../images/infantry.png'); position: absolute; top: -27px; left: 26px; -webkit-transform: rotate(15deg) skew(-30deg, 30deg) scale(0.65, 1.23);}
 
 
 /* TERRAIN */	
