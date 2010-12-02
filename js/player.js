@@ -14,6 +14,7 @@ function Player(map, init) {
 	// Player Assets
 	this.cities = {};
 	this.units = {};
+	this.gold = 0;
 	
 	/*
 	*	addUnit(unit)

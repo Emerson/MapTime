@@ -15,15 +15,14 @@
 	    
     <div id="map"></div>
 
-	<div id="debugPanel">
+	<div id="topControls">
 		<ul>
-			<li class="findPath"><a href="#">findpath</a></li>
-			<li class="start"><a href="#">start</a></li>
-			<li class="finish"><a href="#">finish</a></li>			
-			<li class="nextTurn"><a href="#">next turn</a></li>
-			<li class="addUnit"><a href="#">add unit</a></li>
+			<li class="gold">Gold: <span>0</span></li>
+			<li class="placeTerrain"><a href="#">Place Terrain (p)</a></li>
+			<li class="buyUnit"><a href="#">Buy Unit (b)</a></li>			
+			<li class="endTurn"><a href="#">End Turn (enter)</a></li>			
 		</ul>
-		<p class="turnCounter"></p>
+		<p class="turnCounter">0</p>
 	</div>
 	
 	<div id="unitPanel">
